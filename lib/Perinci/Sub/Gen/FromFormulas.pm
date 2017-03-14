@@ -34,14 +34,14 @@ sub _parse_formula {
     $res->{y_var} = $1;
     $symbols->{ $1 } or die "Dependent variable $1 is an undefined symbol";
     my %seen;
-    while ($fml =~ /([A-Za-z]\w*)(?!=\()/g) {
+    while ($fml =~ /([A-Za-z]\w*)(?=\b)(?!\()/g) {
         next if $seen{$1}++;
         $symbols->{ $1 } or die "Independent variable $1 is an undefined symbol";
         push @{ $res->{x_vars} }, $1;
     }
     $res->{x_vars} && @{$res->{x_vars}}
         or die "No independent variables found in formula '$fml'";
-    (my $perl_src = $fml) =~ s/([A-Za-z]\w*)(?!=\()/\$args{$1}/g;
+    (my $perl_src = $fml) =~ s/([A-Za-z]\w*)(?=\b)(?!\()/\$args{$1}/g;
     $res->{perl_src} = $perl_src;
     $res;
 }
@@ -133,7 +133,7 @@ _
                         formula => 'n = log(fv/pv) / log(1+r)',
                     },
                 ],
-                prefix => 'calc-fv-',
+                prefix => 'calc_fv_',
             },
             test => 0,
             'x.doc.show_result' => 0,
@@ -182,6 +182,7 @@ sub gen_funcs_from_formulas {
             description => "Formula is:\n\n    $fmlspec->{formula}\n\n",
             args => $meta_args,
             result_naked => 1,
+            (examples => $fmlspec->{examples}) x !!defined($fmlspec->{examples}),
         };
         if ($args{install} // 1) {
             no strict 'refs';
